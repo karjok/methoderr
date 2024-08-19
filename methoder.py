@@ -35,12 +35,12 @@ def banner(url=None, methods=None, color_theme=green):
 	cl = color_theme
 	now = time.strftime('%a, %d-%m-%Y %I:%M:%S %p')
 	txt =f"""
-{reset}   ▄▄▄▄█████████▄████████  {cl} ┳┳┓┏┓┏┳┓┓┏┏┓┳┓{reset}┏┓			 
+{reset}▄▄▄▄█████████▄████████  {cl} ┳┳┓┏┓┏┳┓┓┏┏┓┳┓{reset}┏┓			 
 {reset}	   ████████▀  ███████  {cl} ┃┃┃┣  ┃ ┣┫┃┃┃┃{reset}┣ ┏┓┏┓		 
-{reset}	   ▀██████▀	▀▀▀▀█   {cl} ┛ ┗┗┛ ┻ ┛┗┗┛┻┛{reset}┗┛┛ ┛		  
-{reset}				   ▄▄▄█▄▄  {cl}			   {reset}					
-{reset}	   ▄				   {reset} Request Method Error Checker
-{reset}	   ▀▀▀▀▀▀▀▄			{cl} V1.1.0{reset}
+{reset}	   ▀██████▀	   ▀▀▀▀█   {cl} ┛ ┗┗┛ ┻ ┛┗┗┛┻┛{reset}┗┛┛ ┛		  
+{reset}                ▄▄▄█▄▄  {cl}				
+{reset}	   ▄                {reset} Request Method Error Checker
+{reset}	    ▀▀▀▀▀▀▀▄           {cl} V1.1.0{reset}
 {reset}   {now}
 
 """
