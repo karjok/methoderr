@@ -131,6 +131,7 @@ def crawl_url(base_url, headers=None, save=False):
 	return ret_urls
 
 def handle_response(url, response, method, show_headers=False, show_response=False, max_response=1000, color_theme=reset, beautify=False, indent=5):
+	url = url.strip()
 	html = bs4.BeautifulSoup(response.text, "html.parser")
 	status = response.status_code
 	response_headers = response.headers
@@ -149,7 +150,8 @@ def handle_response(url, response, method, show_headers=False, show_response=Fal
 		max_mark = " " * indent + ".." * indent + color_theme+f" Max displaying {max_response} strings" + reset
 		max_mark = "\n"+max_mark if len(response_text) > max_response else ""
 		response_text_formated = color_theme + " "*(indent-2) + "RESPONSE BODY\n" + reset + response_text + max_mark
-		print(response_text_formated)
+		if len(response.text) != 0:
+			print(response_text_formated)
 def handle_scheme(url, scheme='http'):
 	base_url = urlparse(url)
 	if not base_url.scheme:
@@ -167,7 +169,7 @@ def handle_wordlist(file_path, scheme='http'):
 	with open(file_path, "r") as urls:
 		for url in urls.readlines():
 			url = handle_scheme(url, scheme=scheme)
-			ret_urls.add(url)
+			ret_urls.add(url.strip())
 		return ret_urls
 
 def main(args, url, methods, error_only=False, show_headers=False, show_response=False, color_theme=reset):
@@ -217,7 +219,7 @@ def home(args, url=None, wordlist=None):
 			for url in after_crawled:
 				urls.add(url)
 		urls = set(list(urls))
-		print(f"\nStart checking {color_scheme}{len(url)}{reset} URL{'s' if len(url) > 1 else ''}..")
+		print(f"\nStart checking {color_scheme}{len(urls)}{reset} URL{'s' if len(urls) > 1 else ''}..")
 	else:
 		urls = [handle_scheme(url, scheme='https' if args.force_https else 'http')]
 	for url in list(urls):
