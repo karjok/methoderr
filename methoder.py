@@ -12,6 +12,9 @@ import re
 import os
 import time
 import random
+import certifi
+import warnings
+import urllib3
 from urllib.parse import urljoin, urlparse, urlunparse
 from headerz import Headerz
 
@@ -24,6 +27,7 @@ blue = "\033[95m"
 reset = "\033[0m"
 
 basic_methods = ["GET","POST","PUT","PATCH","DELETE","OPTIONS","HEAD","TRACE","CONNECT"]
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 def banner(url=None, wordlist=None, methods=None, color_theme=green):
 	cl = color_theme
@@ -84,7 +88,7 @@ def header_beautifier(header_json, indent=0, colorize=False, color=reset, banner
 				colored_formats.append(colored_line)
 		formats = colored_formats
 	return "\n".join(formats) + "\n"
-def perform_request(url, method="GET", scheme="http", headers=None, agent="python/requests"):
+def perform_request(url, method="GET", scheme="http", headers=None, agent="python/requests", verify_ssl=True):
 	ok = False
 	error = None
 	response = None
@@ -95,21 +99,35 @@ def perform_request(url, method="GET", scheme="http", headers=None, agent="pytho
 		headers = {"user-agent": agent}
 
 	try:
-		response = requests.request(method, url, headers=headers)
+		response = requests.request(method, url, headers=headers, verify=not verify_ssl)
 		ok = True
 	except KeyboardInterrupt:
 		exit(0)
 	except Exception as err:
 		error = err
 	return {"ok": ok, "response": response, "error": error}
+def check_connection(url, verify_ssl=True):
+	print(f"Checking connection to {color_scheme}{url}{reset}..")
+	response = perform_request(url, verify_ssl=verify_ssl)
+	if response["ok"]:
+		print(f"Connection eslatbilished, continue..")
+		return True
+	else:
+		if "SSLError" in str(response.get('error')):
+			print(f"{color_scheme}SSLError{reset} error detected. Please use {color_scheme}--no-ssl{reset} to bypass this error.")
+		return False
 
-def crawl_url(base_url, headers=None, save=False):
+
+def crawl_url(base_url, headers=None, save=False, verify=True):
 	ret_urls = set()
 	url_part = urlparse(base_url)
-	response = perform_request(base_url, headers=headers).get('response')
+	response = perform_request(base_url, headers=headers, verify_ssl=verify).get("response")
 	urls = re.findall(r'(\'(?:[^\\\'\n\r]|\\.)*\'|\"(?:[^\\\"\n\r]|\\.)*\")', response.text)
 	relative_url_pattern = r'\/[a-zA-Z0-9-_.~%!$&\'()*+,;=]+(?:\/[a-zA-Z0-9-_.~%!$&\'()*+,;=]*)*(?:\?[a-zA-Z0-9-_.~%!$&\'()*+,;=]*)(?:#[a-zA-Z0-9-_.~%!$&\'()*+,;=]*)?'
 	relative_urls = re.findall(relative_url_pattern, response.text)
+	href_urls = re.findall(r'href=\"(.*?)\"', response.text)
+	# for url in href_urls:
+	# 	print(url)
 	for rel_url in relative_urls:
 		abs_url_part = urlparse(rel_url)
 		if not abs_url_part:
@@ -121,7 +139,7 @@ def crawl_url(base_url, headers=None, save=False):
 		i = i.replace("\"","").replace("'","")
 		if url_part.netloc in i and re.match(re.compile(r'^http[s]:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,}(\/[^\s]*)?$'), i):
 			ftype = urlparse(i).path.split('.')[-1] if urlparse(i).path else ""
-			if ftype not in ["jpg","jpeg","png","css","js","gif","svg","webp","mp3","mp4"]:
+			if ftype not in ["jpg","jpeg","png","css","js","gif","svg","webp","mp3","mp4","pdf"]:
 				ret_urls.add(i)
 	if save:
 		if ".tmp" not in os.listdir("."):
@@ -130,28 +148,40 @@ def crawl_url(base_url, headers=None, save=False):
 			f.write("\n".join(ret_urls))
 	return ret_urls
 
-def handle_response(url, response, method, show_headers=False, show_response=False, max_response=1000, color_theme=reset, beautify=False, indent=5):
+def handle_response(url, response, method, show_headers=False, show_response=False, max_response=1000, color_theme=reset, beautify=False, indent=5, json_only=False):
 	url = url.strip()
 	html = bs4.BeautifulSoup(response.text, "html.parser")
 	status = response.status_code
 	response_headers = response.headers
 	title = html.title.text.strip() if html.title else "-"
-	print("{3} {0}|{1} {4} {0}|{1} {0} {2} {1} {0}|{1} {5}".format(color_theme, reset, method, url, status, title))
-	if show_headers:
-		print(header_beautifier(dict(response_headers), indent=indent, colorize=header_colorize, color=color_theme, banner_color=color_theme))
-	if show_response:
-		if beautify:
-			response_text = html.find('body').prettify() if html.find('body') else html.prettify()
-			joiner = "\n"
-		else:
-			response_text = html.find('body') if html.find('body') else html
-			joiner = "\n"
-		response_text = joiner.join([" " * indent + i for i in str(response_text)[:max_response].split("\n")])
-		max_mark = " " * indent + ".." * indent + color_theme+f" Max displaying {max_response} strings" + reset
-		max_mark = "\n"+max_mark if len(response_text) > max_response else ""
-		response_text_formated = color_theme + " "*(indent-2) + "RESPONSE BODY\n" + reset + response_text + max_mark
-		if len(response.text) != 0:
+	response_text_formated = ""
+	
+	if json_only:
+		try:
+			resp = json.loads(response.text)
+			print("{3} {0}|{1} {4} {0}|{1} {0} {2} {1} {0}|{1} {5}".format(color_theme, reset, method, url, status, title))
+			response_text_formated = json.dumps(resp)
+		except:
+			pass
+		if len(response_text_formated) != 0:
 			print(response_text_formated)
+	else:
+		print("{3} {0}|{1} {4} {0}|{1} {0} {2} {1} {0}|{1} {5}".format(color_theme, reset, method, url, status, title))
+		if show_headers:
+			print(header_beautifier(dict(response_headers), indent=indent, colorize=header_colorize, color=color_theme, banner_color=color_theme))
+		if show_response:
+			if beautify:
+				response_text = html.find('body').prettify() if html.find('body') else html.prettify()
+				joiner = "\n"
+			else:
+				response_text = html.find('body') if html.find('body') else html
+				joiner = "\n"
+			response_text = joiner.join([" " * indent + i for i in str(response_text)[:max_response].split("\n")])
+			max_mark = " " * indent + ".." * indent + color_theme+f" Max displaying {max_response} strings" + reset
+			max_mark = "\n"+max_mark if len(response_text) > max_response else ""
+			response_text_formated = color_theme + " "*(indent-2) + "RESPONSE BODY\n" + reset + response_text + max_mark
+			if len(response.text) != 0:
+				print(response_text_formated)
 def handle_scheme(url, scheme='http'):
 	base_url = urlparse(url)
 	if not base_url.scheme:
@@ -172,19 +202,20 @@ def handle_wordlist(file_path, scheme='http'):
 			ret_urls.add(url.strip())
 		return ret_urls
 
-def main(args, url, methods, error_only=False, show_headers=False, show_response=False, color_theme=reset):
+def main(args, url, methods, error_only=False, show_headers=False, show_response=False, color_theme=reset, json_only=False):
 	break_on_error = False
 	do_confirm = True
 	for method in methods:
 		agent = user_agent.generate_user_agent() if args.random_agent else 'python/requests'
-		response = perform_request(url, method=method, scheme='https' if args.force_https else 'http', headers=args.rheaders, agent=agent)
+		response = perform_request(url, method=method, scheme='https' if args.force_https else 'http', headers=args.rheaders, agent=agent, verify_ssl=args.no_ssl)
 		if response['ok']:
 			response = response.get('response')
 			if error_only:
 				if response.status_code == 500 or "error" in response.text.lower():
-					handle_response(url, response, show_headers=show_headers, method=method, show_response=args.show_body, max_response=args.max_body, beautify=args.beautify, color_theme=color_theme)
+					handle_response(url, response, show_headers=show_headers, method=method, show_response=args.show_body, max_response=args.max_body, beautify=args.beautify, color_theme=color_theme, json_only=args.json_only)
 			else:
-				handle_response(url, response, show_headers=show_headers, method=method, show_response=args.show_body, max_response=args.max_body, beautify=args.beautify, color_theme=color_theme)
+				handle_response(url, response, show_headers=show_headers, method=method, show_response=args.show_body, max_response=args.max_body, beautify=args.beautify, color_theme=color_theme, json_only=args.json_only)
+			time.sleep(args.delay)
 		else:
 			print(response.get('error'))
 			if break_on_error:
@@ -200,31 +231,46 @@ def main(args, url, methods, error_only=False, show_headers=False, show_response
 						break_on_error = True
 						break
 def home(args, url=None, wordlist=None):
+	do_confirm = True
+	break_on_error = False
 	custom_methods = args.custom_method
 	methods = basic_methods + [m.strip().upper() for m in custom_methods.split(',')] if custom_methods else basic_methods
 	banner(url=url, wordlist=wordlist, methods=methods, color_theme=color_scheme)
+	
 	if args.crawl and not wordlist:
-		urls = crawl_url(url, headers=args.rheaders, save=args.save_crawl)
+		if check_connection(handle_scheme(url, scheme='https' if args.force_https else 'http'), verify_ssl=args.no_ssl):
+			urls = crawl_url(url, headers=args.rheaders, save=args.save_crawl, verify=args.no_ssl)
+			urls = urls if urls else [url]
+		else:
+			exit(0)
 	elif wordlist:
 		urls = handle_wordlist(args.wordlist, scheme='https' if args.force_https else 'http')
 		after_crawled = set()
 		if args.crawl:
 			for url in urls:
-				print(f"Perform crawling URL at {color_scheme}{url}{reset}")
-				crawled_url = crawl_url(url, headers=args.rheaders, save=args.save_crawl)
-				if crawled_url:
-					for url in crawled_url:
-						after_crawled.add(url)
+				if check_connection(handle_scheme(url, scheme='https' if args.force_https else 'http'), verify_ssl=args.no_ssl):
+					urls = [handle_scheme(url, scheme='https' if args.force_https else 'http')]
+					print(f"Perform crawling URL at {color_scheme}{url}{reset}")
+					crawled_url = crawl_url(url, headers=args.rheaders, save=args.save_crawl, verify_ssl=args.no_ssl)
+					if crawled_url:
+						for url in crawled_url:
+							after_crawled.add(url)
+				else:
+					print(f"Skipping {color_scheme}{url}{reset}..")
+					
 		if after_crawled:
 			for url in after_crawled:
 				urls.add(url)
 		urls = set(list(urls))
 		print(f"\nStart checking {color_scheme}{len(urls)}{reset} URL{'s' if len(urls) > 1 else ''}..")
 	else:
-		urls = [handle_scheme(url, scheme='https' if args.force_https else 'http')]
+		if check_connection(handle_scheme(url, scheme='https' if args.force_https else 'http'), verify_ssl=args.no_ssl):
+			urls = [handle_scheme(url, scheme='https' if args.force_https else 'http')]
+		else:
+			exit(0)
 	for url in list(urls):
 		try:
-			main(args, url, methods, show_headers=args.show_header, show_response=args.show_body, color_theme=color_scheme, error_only=args.error_only)
+			main(args, url, methods, show_headers=args.show_header, show_response=args.show_body, color_theme=color_scheme, error_only=args.error_only, json_only=args.json_only)
 		except Exception as exc:
 			print(exc)
 			break
@@ -247,9 +293,12 @@ if __name__ == "__main__":
 	parser.add_argument('--show-body', action='store_true', default=False, help='Show the response inside the <body> tag')
 	parser.add_argument('--beautify', action='store_true', default=False, help='Beautify the shown response body')
 	parser.add_argument('--max-body', type=int, default=1000, help='Limit the shown response body size to specified number. Default 1000')
+	parser.add_argument('-d','--delay', type=int, default=0, help='Set delay per request in second')
 	parser.add_argument('--error-only', action='store_true', default=False, help='Only print error result, like 500 error or "error" related string')
+	parser.add_argument('--json-only', action='store_true', default=False, help='Only print result with content type json')
 	parser.add_argument('--force-https', action='store_true', default=False, help='Force al urls to starts with https. If not specified and no scheme in url, it will force to http')
 	parser.add_argument('--random-agent', action='store_true', default=False, help='Using random user agent instead of using default python requests user agent')
+	parser.add_argument('--no-ssl', action='store_true', default=False, help='Bypass SSL verification')
 	parser.add_argument('--no-color', action='store_true', default=False, help='No color..')
 	args = parser.parse_args()
 	if args.no_color:
