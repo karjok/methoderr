@@ -27,6 +27,8 @@ blue = "\033[95m"
 reset = "\033[0m"
 
 basic_methods = ["GET","POST","PUT","PATCH","DELETE","OPTIONS","HEAD","TRACE","CONNECT"]
+default_extension_excludes = ["jpg","jpeg","png","css","js","gif","svg","webp","mp3","mp4","pdf"]
+
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 def banner(url=None, wordlist=None, methods=None, color_theme=green):
@@ -110,7 +112,7 @@ def check_connection(url, verify_ssl=True):
 	print(f"Checking connection to {color_scheme}{url}{reset}..")
 	response = perform_request(url, verify_ssl=verify_ssl)
 	if response["ok"]:
-		print(f"Connection eslatbilished, continue..")
+		print("Connection eslatbilished, continue..")
 		return True
 	else:
 		if "SSLError" in str(response.get('error')):
@@ -118,7 +120,7 @@ def check_connection(url, verify_ssl=True):
 		return False
 
 
-def crawl_url(base_url, headers=None, save=False, verify=True):
+def crawl_url(base_url, headers=None, save=False, verify=True, extensions_exclude=[]):
 	ret_urls = set()
 	url_part = urlparse(base_url)
 	response = perform_request(base_url, headers=headers, verify_ssl=verify).get("response")
@@ -126,8 +128,6 @@ def crawl_url(base_url, headers=None, save=False, verify=True):
 	relative_url_pattern = r'\/[a-zA-Z0-9-_.~%!$&\'()*+,;=]+(?:\/[a-zA-Z0-9-_.~%!$&\'()*+,;=]*)*(?:\?[a-zA-Z0-9-_.~%!$&\'()*+,;=]*)(?:#[a-zA-Z0-9-_.~%!$&\'()*+,;=]*)?'
 	relative_urls = re.findall(relative_url_pattern, response.text)
 	href_urls = re.findall(r'href=\"(.*?)\"', response.text)
-	# for url in href_urls:
-	# 	print(url)
 	for rel_url in relative_urls:
 		abs_url_part = urlparse(rel_url)
 		if not abs_url_part:
@@ -138,8 +138,8 @@ def crawl_url(base_url, headers=None, save=False, verify=True):
 	for i in urls:
 		i = i.replace("\"","").replace("'","")
 		if url_part.netloc in i and re.match(re.compile(r'^http[s]:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,}(\/[^\s]*)?$'), i):
-			ftype = urlparse(i).path.split('.')[-1] if urlparse(i).path else ""
-			if ftype not in ["jpg","jpeg","png","css","js","gif","svg","webp","mp3","mp4","pdf"]:
+			extension = urlparse(i).path.split('.')[-1] if urlparse(i).path else ""
+			if extension not in extensions_exclude:
 				ret_urls.add(i)
 	if save:
 		if ".tmp" not in os.listdir("."):
@@ -164,6 +164,8 @@ def handle_response(url, response, method, show_headers=False, show_response=Fal
 		except:
 			pass
 		if len(response_text_formated) != 0:
+			response_text_display = response_text_formated[:max_response] + color_theme+f" Max displaying {max_response} strings" + reset  if len(response_text_formated) > max_response else response_text_formated
+			response_text_formated = color_theme + " "*(indent-2) + "RESPONSE BODY\n" + reset + response_text_display
 			print(response_text_formated)
 	else:
 		print("{3} {0}|{1} {4} {0}|{1} {0} {2} {1} {0}|{1} {5}".format(color_theme, reset, method, url, status, title))
@@ -196,18 +198,22 @@ def handle_scheme(url, scheme='http'):
 	return url
 def handle_wordlist(file_path, scheme='http'):
 	ret_urls = set()
-	with open(file_path, "r") as urls:
-		for url in urls.readlines():
-			url = handle_scheme(url, scheme=scheme)
-			ret_urls.add(url.strip())
-		return ret_urls
+	try:
+		with open(file_path, "r") as urls:
+			for url in urls.readlines():
+				url = handle_scheme(url, scheme=scheme)
+				ret_urls.add(url.strip())
+			return ret_urls
+	except:
+		print(f"Your given file {color_scheme}{file_path}{reset} is invalid file or not found.")
+		exit(1)
 
 def main(args, url, methods, error_only=False, show_headers=False, show_response=False, color_theme=reset, json_only=False):
 	break_on_error = False
 	do_confirm = True
 	for method in methods:
 		agent = user_agent.generate_user_agent() if args.random_agent else 'python/requests'
-		response = perform_request(url, method=method, scheme='https' if args.force_https else 'http', headers=args.rheaders, agent=agent, verify_ssl=args.no_ssl)
+		response = perform_request(url, method=method, scheme='https' if args.force_https else 'http', headers=args.headers, agent=agent, verify_ssl=args.no_ssl)
 		if response['ok']:
 			response = response.get('response')
 			if error_only:
@@ -223,7 +229,7 @@ def main(args, url, methods, error_only=False, show_headers=False, show_response
 			else:
 				if do_confirm:
 					try:
-						confirm = input("Error occured. Do you want to continue ? y/n: ")
+						confirm = input(f"Seems like error has occured. Do you want to continue ? {color_scheme}y{reset}/{color_scheme}n{reset}: ")
 					except:
 						exit(0)
 					do_confirm = False
@@ -234,12 +240,13 @@ def home(args, url=None, wordlist=None):
 	do_confirm = True
 	break_on_error = False
 	custom_methods = args.custom_method
-	methods = basic_methods + [m.strip().upper() for m in custom_methods.split(',')] if custom_methods else basic_methods
+	methods = [m.strip().upper() for m in custom_methods.split(',')] if custom_methods else basic_methods
+	extension_excludes = [ex.strip().lower() for ex in args.exclude.split(',')] if args.exclude else default_extension_excludes
 	banner(url=url, wordlist=wordlist, methods=methods, color_theme=color_scheme)
 	
 	if args.crawl and not wordlist:
 		if check_connection(handle_scheme(url, scheme='https' if args.force_https else 'http'), verify_ssl=args.no_ssl):
-			urls = crawl_url(url, headers=args.rheaders, save=args.save_crawl, verify=args.no_ssl)
+			urls = crawl_url(url, headers=args.headers, save=args.save_crawl, verify=args.no_ssl, extensions_exclude=extension_excludes)
 			urls = urls if urls else [url]
 		else:
 			exit(0)
@@ -251,7 +258,7 @@ def home(args, url=None, wordlist=None):
 				if check_connection(handle_scheme(url, scheme='https' if args.force_https else 'http'), verify_ssl=args.no_ssl):
 					urls = [handle_scheme(url, scheme='https' if args.force_https else 'http')]
 					print(f"Perform crawling URL at {color_scheme}{url}{reset}")
-					crawled_url = crawl_url(url, headers=args.rheaders, save=args.save_crawl, verify_ssl=args.no_ssl)
+					crawled_url = crawl_url(url, headers=args.headers, save=args.save_crawl, verify_ssl=args.no_ssl, extensions_exclude=extension_excludes)
 					if crawled_url:
 						for url in crawled_url:
 							after_crawled.add(url)
@@ -284,22 +291,23 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser(add_help=False, description="METHODErr - Simple tool to checking for Invalid HTTP Method Error", formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=50, width=100))
 	parser.add_argument('-h', '--help', action='store_true', default=False, help='Print this help and exit')
 	parser.add_argument('-u', '--url', default=None, help='Specify target URL')
-	parser.add_argument('-w','--wordlist', default=False, help='Specify word list file path')
-	parser.add_argument('--rheaders', default=False, help='Specify custom requests headers, include cookies etc (Burp headers format)')
-	parser.add_argument('--custom-method', default='', help='Using custom method, ex: HELO, TEST, ETC. Sparated with comma')
-	parser.add_argument('--crawl', action='store_true', default=False, help='Using crawl mode. The tool will crawling the url on response text')
-	parser.add_argument('--save-crawl', action='store_true', default=False, help='Save the crawling result urls')
-	parser.add_argument('--show-header', action='store_true', default=False, help='Show the response header')
-	parser.add_argument('--show-body', action='store_true', default=False, help='Show the response inside the <body> tag')
-	parser.add_argument('--beautify', action='store_true', default=False, help='Beautify the shown response body')
-	parser.add_argument('--max-body', type=int, default=1000, help='Limit the shown response body size to specified number. Default 1000')
 	parser.add_argument('-d','--delay', type=int, default=0, help='Set delay per request in second')
-	parser.add_argument('--error-only', action='store_true', default=False, help='Only print error result, like 500 error or "error" related string')
-	parser.add_argument('--json-only', action='store_true', default=False, help='Only print result with content type json')
+	parser.add_argument('-w','--wordlist', default=None, help='Specify word list file path')
+	parser.add_argument('-hd','--headers', default=None, help='Specify custom requests headers, include cookies etc (BurpSuite raw headers format)')
+	parser.add_argument('-ra','--random-agent', action='store_true', default=False, help='Using random user agent instead of using default python requests user agent')
+	parser.add_argument('-cm','--custom-method', default='', help='Using custom method, ex: HELO, TEST, ETC. Sparated with comma')
+	parser.add_argument('-c','--crawl', action='store_true', default=False, help='Using crawl mode. The tool will crawling the url on response text')
+	parser.add_argument('-sc','--save-crawl', action='store_true', default=False, help='Save the crawling result urls')
+	parser.add_argument('-ex','--exclude', default=[], help='Ignore url with specified extension when crawling. Sparated with comma')
+	parser.add_argument('-sh','--show-header', action='store_true', default=False, help='Show the response header')
+	parser.add_argument('-sb','--show-body', action='store_true', default=False, help='Show the response inside the <body> tag')
+	parser.add_argument('-mb','--max-body', type=int, default=1000, help='Limit the shown response body size to specified number. Default 1000')
+	parser.add_argument('-b','--beautify', action='store_true', default=False, help='Beautify the shown response body')
+	parser.add_argument('-eo','--error-only', action='store_true', default=False, help='Only print error result, like 500 error or "error" related string')
+	parser.add_argument('-jo','--json-only', action='store_true', default=False, help='Only print result with content type json')
 	parser.add_argument('--force-https', action='store_true', default=False, help='Force al urls to starts with https. If not specified and no scheme in url, it will force to http')
-	parser.add_argument('--random-agent', action='store_true', default=False, help='Using random user agent instead of using default python requests user agent')
 	parser.add_argument('--no-ssl', action='store_true', default=False, help='Bypass SSL verification')
-	parser.add_argument('--no-color', action='store_true', default=False, help='No color..')
+	parser.add_argument('--no-color', action='store_true', default=False, help='No color.. :)')
 	args = parser.parse_args()
 	if args.no_color:
 		color_scheme = reset
