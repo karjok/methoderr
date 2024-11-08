@@ -91,7 +91,7 @@ def header_beautifier(header_json, indent=0, colorize=False, color=reset, banner
 				colored_formats.append(colored_line)
 		formats = colored_formats
 	return "\n".join(formats) + "\n"
-def perform_request(url, method="GET", scheme="http", headers=None, agent="python/requests", verify_ssl=True):
+def perform_request(url, method="GET", scheme="http", headers=None, agent="python/requests", verify_ssl=True, max_timeout=30):
 	ok = False
 	error = None
 	response = None
@@ -102,7 +102,7 @@ def perform_request(url, method="GET", scheme="http", headers=None, agent="pytho
 		headers = {"user-agent": agent}
 
 	try:
-		response = requests.request(method, url, headers=headers, verify=not verify_ssl)
+		response = requests.request(method, url, headers=headers, verify=not verify_ssl, timeout=max_timeout)
 		ok = True
 	except KeyboardInterrupt:
 		exit(0)
@@ -214,7 +214,7 @@ def main(args, url, methods, error_only=False, show_headers=False, show_response
 	do_confirm = True
 	for method in methods:
 		agent = user_agent.generate_user_agent() if args.random_agent else 'python/requests'
-		response = perform_request(url, method=method, scheme='https' if args.force_https else 'http', headers=args.headers, agent=agent, verify_ssl=args.no_ssl)
+		response = perform_request(url, method=method, scheme='https' if args.force_https else 'http', headers=args.headers, agent=agent, verify_ssl=args.no_ssl, max_timeout=args.max_timeout)
 		if response['ok']:
 			response = response.get('response')
 			if error_only:
@@ -303,6 +303,7 @@ if __name__ == "__main__":
 	parser.add_argument('-sh','--show-header', action='store_true', default=False, help='Show the response header')
 	parser.add_argument('-sb','--show-body', action='store_true', default=False, help='Show the response inside the <body> tag')
 	parser.add_argument('-mb','--max-body', type=int, default=1000, help='Limit the shown response body size to specified number. Default 1000')
+	parser.add_argument('-mt','--max-timeout', type=int, default=30, help='Timeout request. Default 30')
 	parser.add_argument('-b','--beautify', action='store_true', default=False, help='Beautify the shown response body')
 	parser.add_argument('-eo','--error-only', action='store_true', default=False, help='Only print error result, like 500 error or "error" related string')
 	parser.add_argument('-ie','--ignore-error', action='store_true', default=False, help='Ignore the error and continue to the next request without confirmation')
