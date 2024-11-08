@@ -72,59 +72,55 @@ Here is an example of the available options:
    ```sh
    methoderr on  main [$] via 🐍 v3.10.12 ➜ methoder
 
-      ▄▄▄▄█████████▄████████ ┳┳┓┏┓┏┳┓┓┏┏┓┳┓┏┓
-          ████████▀  ███████ ┃┃┃┣  ┃ ┣┫┃┃┃┃┣ ┏┓┏┓ 
-          ▀██████▀    ▀▀▀▀█  ┛ ┗┗┛ ┻ ┛┗┗┛┻┛┗┛┛ ┛   
-          ▄                  Request Method Error Checker
-          ▀▀▀▀▀▀▀▄           https://github.com/karjok/methoderr                 
-          Sat, 09-11-2024 12:57:02 AM
+   ▄▄▄▄█████████▄████████ ┳┳┓┏┓┏┳┓┓┏┏┓┳┓┏┓
+       ████████▀  ███████ ┃┃┃┣  ┃ ┣┫┃┃┃┃┣ ┏┓┏┓  
+       ▀██████▀    ▀▀▀▀█  ┛ ┗┗┛ ┻ ┛┗┗┛┻┛┗┛┛ ┛  
+       ▄                  Laravel Debug Error Checker
+       ▀▀▀▀▀▀▀▄           https://github.com/karjok/methoderr                 
+       Sat, 09-11-2024 01:27:53 AM
 
 
-   usage: methoder [-h] [-u URL] [-d DELAY] [-w WORDLIST] [-hd HEADERS] [-ra] [-cm CUSTOM_METHOD] [-c]
-                   [-sc] [-ex EXCLUDE] [-sh] [-sb] [-mb MAX_BODY] [-mt MAX_TIMEOUT] [-b] [-eo] [-ie]
-                   [-jo] [--force-https] [--no-ssl] [--no-color]
+usage: methoder.py [-h] [-u URL] [-d DELAY] [-w WORDLIST] [-hd HEADERS] [-ra] [-cm CUSTOM_METHOD]
+                   [-c] [-sc] [-ex EXCLUDE] [-sh] [-sb] [-mb MAX_BODY] [-mt MAX_TIMEOUT] [-b] [-eo]
+                   [-ie] [-jo] [--force-https] [--no-ssl] [--no-color]
 
-   METHODErr - Simple tool to checking for Invalid HTTP Method Error
+METHODErr - A simple tool to detect Laravel Debug Errors by changing the request method.
 
-   options:
-     -h, --help                                      Print this help and exit
-     -u URL, --url URL                               Specify target URL
-     -d DELAY, --delay DELAY                         Set delay per request in second
-     -w WORDLIST, --wordlist WORDLIST                Specify word list file path
-     -hd HEADERS, --headers HEADERS                  Specify custom requests headers, include cookies
-                                                     etc (BurpSuite raw headers format)
-     -ra, --random-agent                             Using random user agent instead of using default
-                                                     python requests user agent
-     -cm CUSTOM_METHOD, --custom-method CUSTOM_METHOD
-                                                     Using custom method, ex: HELO, TEST, ETC. Sparated
-                                                     with comma
-     -c, --crawl                                     Using crawl mode. The tool will crawling the url
-                                                     on response text
-     -sc, --save-crawl                               Save the crawling result urls
-     -ex EXCLUDE, --exclude EXCLUDE                  Ignore url with specified extension when crawling.
-                                                     Sparated with comma
-     -sh, --show-header                              Show the response header
-     -sb, --show-body                                Show the response inside the <body> tag
-     -mb MAX_BODY, --max-body MAX_BODY               Limit the shown response body size to specified
-                                                     number. Default 1000
-     -mt MAX_TIMEOUT, --max-timeout MAX_TIMEOUT      Timeout request. Default 30
-     -b, --beautify                                  Beautify the shown response body
-     -eo, --error-only                               Only print error result, like 500 error or "error"
-                                                     related string
-     -ie, --ignore-error                             Ignore the error and continue to the next request
-                                                     without confirmation
-     -jo, --json-only                                Only print result with content type json
-     --force-https                                   Force al urls to starts with https. If not
-                                                     specified and no scheme in url, it will force to
-                                                     http
-     --no-ssl                                        Bypass SSL verification
-     --no-color                                      No color.. :)
+options:
+  -h, --help                                      Show this help message and exit
+  -u URL, --url URL                               Specify target URL
+  -d DELAY, --delay DELAY                         Set delay per request in seconds
+  -w WORDLIST, --wordlist WORDLIST                Specify word list file path
+  -hd HEADERS, --headers HEADERS                  Specify custom request headers, including cookies
+                                                  (in BurpSuite raw headers format)
+  -ra, --random-agent                             Use a random user agent instead of the default
+                                                  request python user-agent
+  -cm CUSTOM_METHOD, --custom-method CUSTOM_METHOD
+                                                  Specify custom methods (e.g., HELO, TEST)
+                                                  separated by commas
+  -c, --crawl                                     Use crawl mode to search for URLs in response text
+  -sc, --save-crawl                               Save URLs found during crawling
+  -ex EXCLUDE, --exclude EXCLUDE                  Exclude URLs with specified extensions (comma-
+                                                  separated)
+  -sh, --show-header                              Display response headers
+  -sb, --show-body                                Display content within the <body> tag
+  -mb MAX_BODY, --max-body MAX_BODY               Limit displayed response body size (default: 1000)
+  -mt MAX_TIMEOUT, --max-timeout MAX_TIMEOUT      Set request timeout in seconds (default: 30)
+  -b, --beautify                                  Format response body for easier reading
+  -eo, --error-only                               Display only error responses (e.g., 500 errors)
+  -ie, --ignore-error                             Ignore errors and continue without confirmation
+  -jo, --json-only                                Display only JSON content results
+  --force-https                                   Force HTTPS; if not specified and URL has no
+                                                  scheme, defaults to HTTP
+  --no-ssl                                        Bypass SSL verification
+  --no-color                                      Disable colored output
+
 
    ```
 
 ## Screenshot
 
-![Methoderr Tool Image](https://github.com/user-attachments/assets/20f36d6c-72c1-4311-ad52-7ba12c933cef)
+![Methoderr Tool Image](https://github.com/user-attachments/assets/9d061015-e87d-422f-aefd-200c8f085259)
 
 ## Contributing
 
