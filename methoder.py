@@ -1,3 +1,4 @@
+#!/bin/python3
 # METHODErr
 # Simple Request Method Error Checker
 # Karjok Pangesty
@@ -209,7 +210,7 @@ def handle_wordlist(file_path, scheme='http'):
 		exit(1)
 
 def main(args, url, methods, error_only=False, show_headers=False, show_response=False, color_theme=reset, json_only=False):
-	break_on_error = False
+	break_on_error = args.ignore_error
 	do_confirm = True
 	for method in methods:
 		agent = user_agent.generate_user_agent() if args.random_agent else 'python/requests'
@@ -304,6 +305,7 @@ if __name__ == "__main__":
 	parser.add_argument('-mb','--max-body', type=int, default=1000, help='Limit the shown response body size to specified number. Default 1000')
 	parser.add_argument('-b','--beautify', action='store_true', default=False, help='Beautify the shown response body')
 	parser.add_argument('-eo','--error-only', action='store_true', default=False, help='Only print error result, like 500 error or "error" related string')
+	parser.add_argument('-ie','--ignore-error', action='store_true', default=False, help='Ignore the error and continue to the next request without confirmation')
 	parser.add_argument('-jo','--json-only', action='store_true', default=False, help='Only print result with content type json')
 	parser.add_argument('--force-https', action='store_true', default=False, help='Force al urls to starts with https. If not specified and no scheme in url, it will force to http')
 	parser.add_argument('--no-ssl', action='store_true', default=False, help='Bypass SSL verification')
