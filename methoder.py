@@ -39,7 +39,7 @@ def banner(url=None, wordlist=None, methods=None, color_theme=green):
 {reset}   ▄▄▄▄█████████▄████████{cl} ┳┳┓┏┓┏┳┓┓┏┏┓┳┓{reset}┏┓
 {reset}       ████████▀  ███████{cl} ┃┃┃┣  ┃ ┣┫┃┃┃┃{reset}┣ ┏┓┏┓	
 {reset}       ▀██████▀    ▀▀▀▀█ {cl} ┛ ┗┗┛ ┻ ┛┗┗┛┻┛{reset}┗┛┛ ┛	 
-{reset}       ▄                  Request Method Error Checker
+{reset}       ▄                  Laravel Debug Error Checker
 {reset}       ▀▀▀▀▀▀▀▄          {cl} https://github.com/karjok/methoderr{reset}                 
        {now}
 
@@ -289,28 +289,28 @@ if __name__ == "__main__":
 	header_colorize = True
 	break_on_error = True
 	
-	parser = argparse.ArgumentParser(add_help=False, description="METHODErr - Simple tool to checking for Invalid HTTP Method Error", formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=50, width=100))
-	parser.add_argument('-h', '--help', action='store_true', default=False, help='Print this help and exit')
+	parser = argparse.ArgumentParser(add_help=False, description="METHODErr - A simple tool to detect Laravel Debug Errors by changing the request method.", formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=50, width=100))
+	parser.add_argument('-h', '--help', action='store_true', default=False, help='Show this help message and exit')
 	parser.add_argument('-u', '--url', default=None, help='Specify target URL')
-	parser.add_argument('-d','--delay', type=int, default=0, help='Set delay per request in second')
+	parser.add_argument('-d','--delay', type=int, default=0, help='Set delay per request in seconds')
 	parser.add_argument('-w','--wordlist', default=None, help='Specify word list file path')
-	parser.add_argument('-hd','--headers', default=None, help='Specify custom requests headers, include cookies etc (BurpSuite raw headers format)')
-	parser.add_argument('-ra','--random-agent', action='store_true', default=False, help='Using random user agent instead of using default python requests user agent')
-	parser.add_argument('-cm','--custom-method', default='', help='Using custom method, ex: HELO, TEST, ETC. Sparated with comma')
-	parser.add_argument('-c','--crawl', action='store_true', default=False, help='Using crawl mode. The tool will crawling the url on response text')
-	parser.add_argument('-sc','--save-crawl', action='store_true', default=False, help='Save the crawling result urls')
-	parser.add_argument('-ex','--exclude', default=[], help='Ignore url with specified extension when crawling. Sparated with comma')
-	parser.add_argument('-sh','--show-header', action='store_true', default=False, help='Show the response header')
-	parser.add_argument('-sb','--show-body', action='store_true', default=False, help='Show the response inside the <body> tag')
-	parser.add_argument('-mb','--max-body', type=int, default=1000, help='Limit the shown response body size to specified number. Default 1000')
-	parser.add_argument('-mt','--max-timeout', type=int, default=30, help='Timeout request. Default 30')
-	parser.add_argument('-b','--beautify', action='store_true', default=False, help='Beautify the shown response body')
-	parser.add_argument('-eo','--error-only', action='store_true', default=False, help='Only print error result, like 500 error or "error" related string')
-	parser.add_argument('-ie','--ignore-error', action='store_true', default=False, help='Ignore the error and continue to the next request without confirmation')
-	parser.add_argument('-jo','--json-only', action='store_true', default=False, help='Only print result with content type json')
-	parser.add_argument('--force-https', action='store_true', default=False, help='Force al urls to starts with https. If not specified and no scheme in url, it will force to http')
+	parser.add_argument('-hd','--headers', default=None, help='Specify custom request headers, including cookies (in BurpSuite raw headers format)')
+	parser.add_argument('-ra','--random-agent', action='store_true', default=False, help='Use a random user agent instead of the default request python user-agent')
+	parser.add_argument('-cm','--custom-method', default='', help=' Specify custom methods (e.g., HELO, TEST) separated by commas')
+	parser.add_argument('-c','--crawl', action='store_true', default=False, help='Use crawl mode to search for URLs in response text')
+	parser.add_argument('-sc','--save-crawl', action='store_true', default=False, help='Save URLs found during crawling')
+	parser.add_argument('-ex','--exclude', default=[], help='Exclude URLs with specified extensions (comma-separated)')
+	parser.add_argument('-sh','--show-header', action='store_true', default=False, help='Display response headers')
+	parser.add_argument('-sb','--show-body', action='store_true', default=False, help='Display content within the <body> tag')
+	parser.add_argument('-mb','--max-body', type=int, default=1000, help='Limit displayed response body size (default: 1000)')
+	parser.add_argument('-mt','--max-timeout', type=int, default=30, help='Set request timeout in seconds (default: 30)')
+	parser.add_argument('-b','--beautify', action='store_true', default=False, help='Format response body for easier reading')
+	parser.add_argument('-eo','--error-only', action='store_true', default=False, help='Display only error responses (e.g., 500 errors)')
+	parser.add_argument('-ie','--ignore-error', action='store_true', default=False, help='Ignore errors and continue without confirmation')
+	parser.add_argument('-jo','--json-only', action='store_true', default=False, help='Display only JSON content results')
+	parser.add_argument('--force-https', action='store_true', default=False, help='Force HTTPS; if not specified and URL has no scheme, defaults to HTTP')
 	parser.add_argument('--no-ssl', action='store_true', default=False, help='Bypass SSL verification')
-	parser.add_argument('--no-color', action='store_true', default=False, help='No color.. :)')
+	parser.add_argument('--no-color', action='store_true', default=False, help='Disable colored output')
 	args = parser.parse_args()
 	if args.no_color:
 		color_scheme = reset
