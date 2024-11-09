@@ -120,7 +120,7 @@ options:
 
 ## Screenshot
 
-![Methoderr Tool Image](https://github.com/user-attachments/assets/9d061015-e87d-422f-aefd-200c8f085259)
+![Methoderr Tool Image](https://qu.ax/nanDf.png)
 
 ## Contributing
 
