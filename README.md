@@ -1,7 +1,7 @@
 
 # Methoderr
 
-A simple tool to detect `Laravel Debug Errors` by changing the request method.
+A simple tool to detect `Debug Errors` by changing the request method.
 
 ## Installation
 
@@ -75,7 +75,7 @@ Here is an example of the available options:
    ▄▄▄▄█████████▄████████ ┳┳┓┏┓┏┳┓┓┏┏┓┳┓┏┓
        ████████▀  ███████ ┃┃┃┣  ┃ ┣┫┃┃┃┃┣ ┏┓┏┓  
        ▀██████▀    ▀▀▀▀█  ┛ ┗┗┛ ┻ ┛┗┗┛┻┛┗┛┛ ┛  
-       ▄                  Laravel Debug Error Checker
+       ▄                  Debug Error Checker
        ▀▀▀▀▀▀▀▄           https://github.com/karjok/methoderr                 
        Sat, 09-11-2024 01:27:53 AM
 
@@ -84,7 +84,7 @@ usage: methoder.py [-h] [-u URL] [-d DELAY] [-w WORDLIST] [-hd HEADERS] [-ra] [-
                    [-c] [-sc] [-ex EXCLUDE] [-sh] [-sb] [-mb MAX_BODY] [-mt MAX_TIMEOUT] [-b] [-eo]
                    [-ie] [-jo] [--force-https] [--no-ssl] [--no-color]
 
-METHODErr - A simple tool to detect Laravel Debug Errors by changing the request method.
+METHODErr - A simple tool to detect Debug Errors by changing the request method.
 
 options:
   -h, --help                                      Show this help message and exit
@@ -120,7 +120,7 @@ options:
 
 ## Screenshot
 
-![Methoderr Tool Image](https://qu.ax/nanDf.png)
+![Methoderr Tool Image](https://qu.ax/wsvWZ.png)
 
 ## Contributing
 

@@ -39,7 +39,7 @@ def banner(url=None, wordlist=None, methods=None, color_theme=green):
 {reset}   ▄▄▄▄█████████▄████████{cl} ┳┳┓┏┓┏┳┓┓┏┏┓┳┓{reset}┏┓
 {reset}       ████████▀  ███████{cl} ┃┃┃┣  ┃ ┣┫┃┃┃┃{reset}┣ ┏┓┏┓	
 {reset}       ▀██████▀    ▀▀▀▀█ {cl} ┛ ┗┗┛ ┻ ┛┗┗┛┻┛{reset}┗┛┛ ┛	 
-{reset}       ▄                  Laravel Debug Error Checker
+{reset}       ▄                  Debug Error Checker
 {reset}       ▀▀▀▀▀▀▀▄          {cl} https://github.com/karjok/methoderr{reset}                 
        {now}
 
@@ -289,7 +289,7 @@ if __name__ == "__main__":
 	header_colorize = True
 	break_on_error = True
 	
-	parser = argparse.ArgumentParser(add_help=False, description="METHODErr - A simple tool to detect Laravel Debug Errors by changing the request method.", formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=50, width=100))
+	parser = argparse.ArgumentParser(add_help=False, description="METHODErr - A simple tool to detect Debug Errors by changing the request method.", formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=50, width=100))
 	parser.add_argument('-h', '--help', action='store_true', default=False, help='Show this help message and exit')
 	parser.add_argument('-u', '--url', default=None, help='Specify target URL')
 	parser.add_argument('-d','--delay', type=int, default=0, help='Set delay per request in seconds')
